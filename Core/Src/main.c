@@ -20,8 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#define DL 100 //delay(ms)
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -109,105 +107,56 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  GPIO_PinState etatB1;
-  int varDelay = 1000;
-  char previousState = 0;
+  unsigned char counter = 0;
+  unsigned char buttonPreviousState = 0;
 
-  // ALLUMER LEDS 4 ET 6---------------------------------
-  //HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-  //HAL_GPIO_TogglePin(LD5_GPIO_Port, LD6_Pin);
-
+ //========================================================================================
   while (1)
   {
     /* USER CODE END WHILE */
 
-	  /*BOUCLE TANT QUE B1=0--------------------------
-	  while (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
-	  {
-		  //tant que boutton = 0
-	  }
-	  */
-
-	  //HAL_Delay(200);
-	  if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
-			  previousState = 0;
-
-	  if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && !previousState)
-	  {
-
-	  /*
-  	  //FEU ROUGE------------------------------------
-	  char i;
-	  for (i=0;i<3;i++)
-	  {
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  HAL_Delay(4000);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  HAL_Delay(2000);
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-		  HAL_Delay(4000);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  HAL_Delay(2000);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-  	  }
-  	  //---------------------------------------------
-  	  */
-
-
-
-	  	  //CHANGER TOUTES LES LED--------------------
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-		  HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-		  previousState = 1;
-	  	  //----------------------------------------------------*/
-
-	  }
-
-	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-	  HAL_Delay(100);
-
-	  /*BOUCLE TANT QUE B1=1 (B1 NON RELACHÉ)-------------
-	  while (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
-	  	  {
-	  		  //tant que boutton n'est pas égale à 0
-	  	  }
-
-/*
-	  //ROTATION DE + EN + RAPIDE--------------------------------
-	  	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-
-	  	  while (1)
-		  {
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  HAL_Delay(varDelay);
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD4_Pin);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD6_Pin);
-		  HAL_Delay(varDelay);
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD6_Pin);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD5_Pin);
-		  HAL_Delay(varDelay);
-		  HAL_GPIO_TogglePin(LD4_GPIO_Port, LD5_Pin);
-		  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  HAL_Delay(varDelay);
-		  varDelay *= 0.9;
-		  }
-		  //-----------------------------------------
-*/
-
-
     /* USER CODE BEGIN 3 */
+	  if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
+		  buttonPreviousState = 0;
 
-  } //while(1)
+	  if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && !buttonPreviousState)
+	  	  {
+		  	  buttonPreviousState = 1;
 
+		  	  switch(counter)
+		  	  {
+		  	  case 0:
+		  		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+		  		counter++;
+		  		break;
+		  	  case 1:
+		  		HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+		  		counter++;
+		  		break;
+		  	  case 2:
+		  		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+		  		counter++;
+		  		break;
+		  	  case 3:
+		  		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+		  		counter++;
+		  		break;
+		  	  case 4:
+		  		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+		  		HAL_Delay(100);
+		  		HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+		  		HAL_Delay(100);
+		  		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+		  		HAL_Delay(100);
+		  		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+		  		counter=0;
+		  		break;
+		  	  }
+	  	  }
+  }
   /* USER CODE END 3 */
-
-} //main
+}
+//=============================================================================================
 
 /**
   * @brief System Clock Configuration
