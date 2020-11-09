@@ -59,6 +59,8 @@ static void MX_I2C2_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TSC_Init(void);
 static void MX_USB_PCD_Init(void);
+
+void scroll(unsigned char _delay,unsigned char _side);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -72,6 +74,13 @@ static void MX_USB_PCD_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
+
+char* p_speed;
+char* p_selector;
+char* p_buttonPreviousState;
+
+
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -106,57 +115,58 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  char speed[] = {1,2,3};
+  char selector = 0;
+  char buttonPreviousState = 0;
 
-  unsigned char counter = 0;
-  unsigned char buttonPreviousState = 0;
+  p_speed = &speed;
+  p_selector = &selector;
+  p_buttonPreviousState = &buttonPreviousState;
 
- //========================================================================================
+
+
   while (1)
   {
     /* USER CODE END WHILE */
+	  scroll(200/speed[selector],0);
+	  scroll(200/speed[selector],4);
 
     /* USER CODE BEGIN 3 */
-	  if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
-		  buttonPreviousState = 0;
 
-	  if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && !buttonPreviousState)
-	  	  {
-		  	  buttonPreviousState = 1;
-
-		  	  switch(counter)
-		  	  {
-		  	  case 0:
-		  		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  		counter++;
-		  		break;
-		  	  case 1:
-		  		HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-		  		counter++;
-		  		break;
-		  	  case 2:
-		  		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-		  		counter++;
-		  		break;
-		  	  case 3:
-		  		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  		counter++;
-		  		break;
-		  	  case 4:
-		  		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		  		HAL_Delay(100);
-		  		HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-		  		HAL_Delay(100);
-		  		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-		  		HAL_Delay(100);
-		  		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-		  		counter=0;
-		  		break;
-		  	  }
-	  	  }
   }
   /* USER CODE END 3 */
 }
-//=============================================================================================
+
+void scroll(unsigned char _delay,unsigned char _side) //delay in ms, side = 0 counterclockwise, side = 4 clockwise
+{
+	char _i=0;
+	char _t[]={6,9,7,8,6,8,7,9};
+
+	//HAL_GPIO_TogglePin(GPIOC, (1<<6));
+	for (_i=_side ; _i <= _side+3 ; _i++)
+	{
+		HAL_GPIO_TogglePin(GPIOC, (1<<(_t[_i])));
+		//HAL_GPIO_TogglePin(GPIOC, (1<<(_t[_i+1])));
+		HAL_Delay(_delay);
+		HAL_GPIO_TogglePin(GPIOC, (1<<(_t[_i])));
+
+		if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
+		  {
+			  *p_buttonPreviousState = 0;
+			  //;
+		  }
+
+		if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && !*p_buttonPreviousState)
+		  {
+			  *p_buttonPreviousState = 1;
+			  *p_selector = (*p_selector==2) ? 0 : *p_selector+1;
+			  _delay = 200 / p_speed[*p_selector];
+		  }
+	}
+}
+
+
+
 
 /**
   * @brief System Clock Configuration
