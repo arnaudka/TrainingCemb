@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "led_controller.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -53,6 +54,8 @@ PCD_HandleTypeDef hpcd_USB_FS;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C2_Init(void);
@@ -60,7 +63,8 @@ static void MX_SPI2_Init(void);
 static void MX_TSC_Init(void);
 static void MX_USB_PCD_Init(void);
 
-void scroll(unsigned char *,unsigned char);
+//void scroll(unsigned char *,unsigned char);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -75,11 +79,7 @@ void scroll(unsigned char *,unsigned char);
   * @retval int
   */
 
-
-
-
-
-int main(void)
+int main(void) //======================================================= MAIN =======================================================
 {
   /* USER CODE BEGIN 1 */
 
@@ -113,47 +113,38 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  unsigned char speed = 200;
+  //unsigned char speed = 200;
 
-  while (1)
+  led_controller_init();
+  led_controller_Config();
+
+  // EX3
+  //vitesse + mode → structure
+  //init() → paramètres de base (pin des LEDs par exemple, nb de LEDS, etc.)
+  //run(void)
+  //setmode(newmode) → appui
+  //set(speed) → appui long ?
+
+  // EX 4
+  //interrupt avec timer 50ms → run()
+
+  while (1) //================================ WHILE(1) ===================================
   {
     /* USER CODE END WHILE */
-	  scroll(&speed,0);
-	  scroll(&speed,4);
 
     /* USER CODE BEGIN 3 */
 
-  }
+  }//=============================================================================
   /* USER CODE END 3 */
 }
 
-void scroll(unsigned char * _speed,unsigned char _side) //delay in ms, side = 0 counterclockwise, side = 4 clockwise
-{
-	static char buttonPreviousState = 0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { //######################################"
 
-	char _i=0;
-	char _t[]={6,9,7,8,6,8,7,9}; //sequence
+  /* Prevent unused argument(s) compilation warning */
+  //UNUSED(GPIO_Pin);
 
-	for (_i=_side ; _i <= _side+3 ; _i++)
-	{
-		HAL_GPIO_TogglePin(GPIOC, (1<<(_t[_i])));
-		HAL_Delay(*_speed);
-		HAL_GPIO_TogglePin(GPIOC, (1<<(_t[_i])));
-
-		if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
-		  {
-			  buttonPreviousState = 0;
-		  }
-
-		if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && !buttonPreviousState)
-		  {
-			  buttonPreviousState = 1;
-			  *_speed = (*_speed<50) ? 200 : *_speed/2;
-		  }
-	}
+	led_controller_run();
 }
-
-
 
 
 /**
@@ -367,7 +358,7 @@ static void MX_USB_PCD_Init(void)
   * @param None
   * @retval None
   */
-static void MX_GPIO_Init(void)
+static void MX_GPIO_Init(void) //================== GPIO INIT ====================
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -395,11 +386,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : B1_Pin */
+  /*Configure GPIO pin : B1_Pin */ //=============== INIT B1 ===================
   GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  //GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
+
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 2, 0); //====== INIT NVIC ========
+  HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
 
 }
 
