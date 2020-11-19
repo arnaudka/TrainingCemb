@@ -120,13 +120,25 @@ int main(void) //======================================================= MAIN ==
 
   // EX3
   //vitesse + mode → structure
-  //init() → paramètres de base (pin des LEDs par exemple, nb de LEDS, etc.)
   //run(void)
   //setmode(newmode) → appui
+
+  //E3.2
+  //init() → paramètres de base (!!!initGPIO!!! pin des LEDs par exemple, nb de LEDS, etc.)
+  //run en continu
+  //simuler timer
+  // dans while(1) → appel de run(), puis func(check sur bouton), delay(25) /!\ pas de delay dans les autres fonctions
+
+
+
+
+
   //set(speed) → appui long ?
 
-  // EX 4
+  // EX
   //interrupt avec timer 50ms → run()
+  //
+
 
   while (1) //================================ WHILE(1) ===================================
   {

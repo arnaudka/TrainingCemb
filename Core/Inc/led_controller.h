@@ -39,7 +39,7 @@ typedef struct {
 	int mode;
 	int delay;
 	int pattern[PAT_MAX];
-} led_controller_config;
+} led_controller_config; //EX -> décl sous main
 
 void led_controller_init();
 void led_controller_Config();
