@@ -35,16 +35,18 @@ enum {
 	LED4 = 0x100UL,
 };
 
-typedef struct {
+typedef struct { //EX -> décl. sous main /OK
 	int mode;
 	int delay;
+	int patSize; //.patSize = sizeof(config[i].pattern)/sizeof(int)
 	int pattern[PAT_MAX];
-} led_controller_config; //EX -> décl sous main
+} led_controller_config;
 
 void led_controller_init();
-void led_controller_Config();
-void led_controller_run();
+void led_controller_Config(int* l_Set);
+void led_controller_run(led_controller_config* l_config, int* l_Set, int* l_pos, int* lg_delay);
 void led_controller_stop();
-void change_set ();
+void change_set (int* l_Set);
+void long_press (int* longPress, led_controller_config* l_config);
 
 #endif /* SRC_LED_CONTROLLER_H_ */

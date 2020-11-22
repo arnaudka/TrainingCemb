@@ -16,6 +16,21 @@
   *
   ******************************************************************************
   */
+
+  // EX3
+  //vitesse + mode → structure /OK
+  //run(void) /OK
+  //setmode(newmode) → appui /OK
+
+  //E3.2 >> WIP <<
+  //init() → paramètres de base (!!!initGPIO!!! pin des LEDs par exemple, nb de LEDS, etc.)
+  //simuler timer → run en continu : dans while(1) → appel de run(), puis func(check sur bouton), delay(25) /!\ pas de delay dans les autres fonctions
+  //set(speed) → appui long ?
+
+  // EX4
+  //interrupt avec timer 50ms → run()
+  //
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -28,6 +43,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+/*
+typedef struct { //EX -> décl. sous main /OK
+	int mode;
+	int delay;
+	int pattern[PAT_MAX];
+} led_controller_config;
+*/
 
 /* USER CODE END PTD */
 
@@ -48,6 +70,13 @@ SPI_HandleTypeDef hspi2;
 TSC_HandleTypeDef htsc;
 
 PCD_HandleTypeDef hpcd_USB_FS;
+
+//=================== PRIVATE VAR =======================
+static led_controller_config config[CONF_MAX];
+static int Set;
+static int g_delay = 0;
+static int pos = 0;
+static int longPress = 0;
 
 /* USER CODE BEGIN PV */
 
@@ -79,9 +108,35 @@ static void MX_USB_PCD_Init(void);
   * @retval int
   */
 
-int main(void) //======================================================= MAIN =======================================================
-{
+int main(void) {//=========================== MAIN ===========================
   /* USER CODE BEGIN 1 */
+	config[0] = (led_controller_config) {
+		.mode = 0,
+		.delay = 50,
+		.pattern = {LED1, DELAY, LED1, LED2, DELAY, LED2, LED3, DELAY, LED3, LED4, DELAY, LED4, STOP},
+		.patSize = sizeof(config[0].pattern)/sizeof(int)
+		};
+
+	config[1] = (led_controller_config) {
+		.mode = 0,
+		.delay = 50,
+		.pattern = {LED1, DELAY, LED2, DELAY, LED3, DELAY, LED4, DELAY, LED1, LED2, LED3, LED4, DELAY, STOP},
+		.patSize = sizeof(config[0].pattern)/sizeof(int)
+		};
+
+	config[2] = (led_controller_config) {
+		.mode = 0,
+		.delay = 50,
+		.pattern = {LED1, LED2, LED3, LED4, DELAY, LED1, DELAY, LED2, DELAY, LED3, DELAY, LED4, DELAY, STOP},
+		.patSize = sizeof(config[0].pattern)/sizeof(int)
+		};
+
+	config[3] = (led_controller_config) {
+		.mode = 0,
+		.delay = 50,
+		.pattern = {LED1, DELAY, LED2, DELAY, LED1, LED3, DELAY, LED2, LED4, DELAY, LED3, LED1, DELAY, LED4, DELAY, LED1, DELAY, STOP},
+		.patSize = sizeof(config[0].pattern)/sizeof(int)
+		};
 
   /* USER CODE END 1 */
 
@@ -107,55 +162,35 @@ int main(void) //======================================================= MAIN ==
   MX_SPI2_Init();
   MX_TSC_Init();
   MX_USB_PCD_Init();
+
   /* USER CODE BEGIN 2 */
+  //led_controller_init(*p_config);
+  led_controller_Config(&Set);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  //unsigned char speed = 200;
 
-  led_controller_init();
-  led_controller_Config();
-
-  // EX3
-  //vitesse + mode → structure
-  //run(void)
-  //setmode(newmode) → appui
-
-  //E3.2
-  //init() → paramètres de base (!!!initGPIO!!! pin des LEDs par exemple, nb de LEDS, etc.)
-  //run en continu
-  //simuler timer
-  // dans while(1) → appel de run(), puis func(check sur bouton), delay(25) /!\ pas de delay dans les autres fonctions
-
-
-
-
-
-  //set(speed) → appui long ?
-
-  // EX
-  //interrupt avec timer 50ms → run()
-  //
-
-
-  while (1) //================================ WHILE(1) ===================================
-  {
+  while (1) {//================================ WHILE(1) ===================================
     /* USER CODE END WHILE */
-
+	  led_controller_run(config, &Set, &pos, &g_delay);
+	  long_press(&longPress, config);
+	  HAL_Delay(25); //simu timer
     /* USER CODE BEGIN 3 */
 
   }//=============================================================================
   /* USER CODE END 3 */
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { //######################################"
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { //============= CALLBACK =============
 
   /* Prevent unused argument(s) compilation warning */
   //UNUSED(GPIO_Pin);
 
-	led_controller_run();
+	pos = -2;
+	g_delay = 0;
+	change_set(&Set);
 }
 
 
@@ -404,7 +439,7 @@ static void MX_GPIO_Init(void) //================== GPIO INIT ==================
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   //GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
 
-		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
   HAL_NVIC_SetPriority(EXTI0_1_IRQn, 2, 0); //====== INIT NVIC ========

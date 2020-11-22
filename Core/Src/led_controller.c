@@ -8,65 +8,78 @@
 #include "main.h"
 #include "led_controller.h"
 
-static led_controller_config config[CONF_MAX];
+void led_controller_init(void) {
+HAL_GPIO_WritePin (GPIOC, LED1, GPIO_PIN_RESET);
+HAL_GPIO_WritePin (GPIOC, LED2, GPIO_PIN_RESET);
+HAL_GPIO_WritePin (GPIOC, LED3, GPIO_PIN_RESET);
+HAL_GPIO_WritePin (GPIOC, LED4, GPIO_PIN_RESET);
 
-static led_controller_config test_config; //EX -> décl sous main
-//static led_controller_config* p_config = &test_config; // pointe vers main
-
-static int Set;
-
-void led_controller_init() {
-	config[0] = (led_controller_config) {
-	.mode = 0,
-	.delay = 200,
-	.pattern = {LED1, DELAY, LED1, LED2, DELAY, LED2, LED3, DELAY, LED3, LED4, DELAY, LED4, STOP}
-	};
-
-	config[1] = (led_controller_config) {
-	.mode = 0,
-	.delay = 200,
-	.pattern = {LED1, DELAY, LED2, DELAY, LED3, DELAY, LED4, DELAY, LED1, LED2, LED3, LED4, STOP}
-	};
-
-	config[2] = (led_controller_config) {
-	.mode = 0,
-	.delay = 200,
-	.pattern = {LED1, LED2, LED3, LED4, DELAY, LED1, DELAY, LED2, DELAY, LED3, DELAY, LED4, STOP}};
-
-	config[3] = (led_controller_config) {
-	.mode = 0,
-	.delay = 200,
-	.pattern = {LED1, DELAY, LED2, DELAY, LED1, LED3, DELAY, LED2, LED4, DELAY, LED3, LED1, DELAY, LED4, DELAY, LED1, STOP}
-	};
 };
 
-
-void led_controller_Config() {
-	Set = 3;
+void led_controller_Config(int* l_Set) {
+	*l_Set = 0;
 };
 
-void change_set (void) {
-	Set++;
-		if (Set > 3)
-			Set = 0;
+void change_set (int* l_Set) {
+	(*l_Set)++;
+		if (*l_Set > 3)
+			*l_Set = 0;
 };
 
-void led_controller_run() {
+void long_press (int* l_longPress, led_controller_config* l_config) {
+	if (HAL_GPIO_ReadPin(GPIOA, B1_Pin)) {
+		(*l_longPress)++;
+	}
+	else {
+		*l_longPress = 0;
+	}
 
-	change_set();
+	switch (*l_longPress) {
+		case 25:
+			l_config[0].delay /= 2;
+			l_config[1].delay /= 2;
+			l_config[2].delay /= 2;
+			l_config[3].delay /= 2;
+			break;
 
-	int i = 0;
-
-		while (config[Set].pattern[i] != STOP) {
-			switch (config[Set].pattern[i]) { //!taille du tableau dans les para de la fonction -> dépassement du tableau!!
-				case DELAY:
-				//HAL_Delay(config[Set].delay);
-				//HAL_Delay(p_config->toto);
-				HAL_Delay(config[Set].delay);//compter nb d'appels de func()
-
-				default:
-				HAL_GPIO_TogglePin(GPIOC, config[Set].pattern[i]);
+		case 50:
+			led_controller_init();
+			while(1) {
+				HAL_GPIO_TogglePin(GPIOC, LED1);
+				HAL_Delay (25);
 			}
-		i++;
+	}
+
+};
+
+void led_controller_run(led_controller_config* l_config, int* l_Set, int* l_pos, int* lg_delay) {
+
+	if ((*l_pos) <= -1) {
+	*l_pos = 0;
+	led_controller_init();
+	return;
+	};
+
+
+	switch (l_config[*l_Set].pattern[*l_pos]) { //!taille du tableau dans les para de la fonction -> dépassement du tableau!!/OK
+		case STOP:
+		*l_pos = 0;
+		*lg_delay = 0;
+		break;
+
+		case DELAY:
+		//HAL_Delay(l_config[*l_Set].delay);//compter nb d'appels de func() /OK
+		(*lg_delay)++;
+
+		if ((*lg_delay) == l_config[*l_Set].delay) {
+			(*l_pos)++;
+			*lg_delay = 0;
 		}
+		break;
+
+		default:
+		HAL_GPIO_TogglePin(GPIOC, l_config[*l_Set].pattern[*l_pos]);
+		(*l_pos)++;
+		break;
+	}
 };
